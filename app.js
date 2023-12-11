@@ -27,6 +27,17 @@ app.get('/', async (req, res) => {
       res.status(500).send('Internal Server Error');
     }
   });
+  app.get("/post/:id", async (req, res) => {
+    try {
+        const post = await Post.findById(req.params.id);
+        res.render('post', { post }); // Pass the 'post' object to the template
+    } catch (error) {
+        console.error('Error fetching post:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+
 app.get("/about",(req,res)=>{
     res.render('about');
 });
