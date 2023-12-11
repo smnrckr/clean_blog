@@ -1,25 +1,50 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import path from 'path';
 import ejs from 'ejs';
 import { fileURLToPath } from 'url';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import Post from './models/Post.js'; // No need for the file extension
+
 
 const app=express();
 const port=3000;
+
+//conect database
+mongoose.connect('mongodb://localhost/cleanblog-test-db');
 //Template Engine
 app.set("view engine", "ejs");
-//middleware
+//middlewares
 app.use(express.static('public'));
-
-app.get("/",(req,res)=>{
-    res.render('index');
-});
+app.use(express.urlencoded({extended:true}))
+app.use(express.json())
+//routes
+app.get('/', async (req, res) => {
+    try {
+      const posts = await Post.find();
+      res.render('index', { posts });  
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+      res.status(500).send('Internal Server Error');
+    }
+  });
 app.get("/about",(req,res)=>{
     res.render('about');
 });
-app.get("/add_post",(req,res)=>{
+app.get("/add_post", (req, res) => {
     res.render('add_post');
+});
+
+app.post("/add_post", async (req, res) => {
+    console.log('Received POST request for /add_post');
+    try {
+        const { title, detail } = req.body;
+        await Post.create({ title, detail });
+        console.log('Post created successfully');
+        res.redirect('/');
+    } catch (error) {
+        console.error('Error creating post:', error);
+        res.status(500).send('Internal Server Error');
+    }
 });
 app.get("/post",(req,res)=>{
     res.render('post');
